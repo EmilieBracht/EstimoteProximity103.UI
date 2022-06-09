@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.estimote.mustard.rx_goodness.rx_requirements_wizard.Requirement
 import com.estimote.mustard.rx_goodness.rx_requirements_wizard.RequirementsWizardFactory
 import com.estimote.proximity_sdk.api.*
+import com.google.firebase.firestore.FirebaseFirestore
 import dtu.CloudCredentials.APP_ID
 import dtu.CloudCredentials.APP_TOKEN
 import dtu.core.Constants
@@ -101,7 +102,20 @@ class MainActivity : ComponentActivity() {
                 Log.d(TAG, "Enter: ${it.tag}")
                 zoneEventViewModel.updateZoneContexts(setOf(it))
                 //hent data fra firebase med agegroup fra beacon tag
-                agegroupViewModel.agegroupRepository.
+                val docRef = FirebaseFirestore.getInstance().collection(Constants.AGEGROUP)
+                docRef.get()
+                    .addOnSuccessListener { Constants ->
+                        if (Constants != null) {
+                            Log.d(TAG, "Enter: ${it.tag}")
+                        } else {
+                            Log.d(TAG, "Intet document")
+                        }
+                    }
+                    .addOnFailureListener { exception ->
+                        Log.d(TAG, "get failed with", exception)
+                    }
+
+                //agegroupViewModel.agegroupRepository.
             }
             .onExit {
                 Log.d(TAG, "Exit: ${it.tag}")
