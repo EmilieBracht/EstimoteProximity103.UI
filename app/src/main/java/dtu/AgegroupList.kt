@@ -7,15 +7,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import dtu.core.Constants
+import dtu.Agegroup
 import dtu.core.Constants.FIREBASETAG
 
 @Composable
 fun AgegroupList(
     list: List<Agegroup>,
     modifier: Modifier = Modifier
-
 ) {
-    Log.d(Constants.FIREBASETAG, "AgegroupList size: ${list.size}")
+    Log.d(Constants.AGEGROUP, "AgegroupList size: ${list.size}")
     LazyColumn(modifier = modifier
     ) {
         items(
@@ -24,7 +24,6 @@ fun AgegroupList(
             AgegruopCard(
                 agegroup = agegroup
             )
-
         }
     }
 }

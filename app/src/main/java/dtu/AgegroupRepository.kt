@@ -1,5 +1,9 @@
 package dtu
 
 interface AgegroupRepository {
-    fun getAgegroup()
+    abstract val agegroup: List<Agegroup>
+    fun getAgegroup(ageID: String)
+    fun addListener()
+    //add Listner
+
 }

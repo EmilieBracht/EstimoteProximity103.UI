@@ -11,11 +11,13 @@ class AgegroupViewModel : ViewModel() {
         val agegroup: List<Agegroup>
             get() = _agegroup
 
-        init {
-            agegroupRepository.getAgegroup()
+        //init {
+          //  agegroupRepository.getAgegroup()
+       // }
+
+        fun getAgegroup(ageID: String){
+            agegroupRepository.getAgegroup(ageID)
+            //agegroupRepository.agegroup.add(Agegroup("30"))
         }
 
-        fun addAgegroup(){
-            agegroupRepository.agegroup.add(Agegroup("30"))
-        }
     }

@@ -23,9 +23,10 @@ import com.estimote.mustard.rx_goodness.rx_requirements_wizard.Requirement
 import com.estimote.mustard.rx_goodness.rx_requirements_wizard.RequirementsWizardFactory
 import com.estimote.proximity_sdk.api.*
 import com.google.firebase.firestore.FirebaseFirestore
-import dtu.CloudCredentials.APP_ID
-import dtu.CloudCredentials.APP_TOKEN
+import dtu.core.CloudCredentials.APP_ID
+import dtu.core.CloudCredentials.APP_TOKEN
 import dtu.core.Constants
+import dtu.core.ZoneNavn
 import dtu.engtech.DB3_3.ui.theme.EstimoteProximity103Theme
 
 private const val TAG = "PROXIMITY"
@@ -35,14 +36,13 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var proximityObserver: ProximityObserver
     private var proximityObservationHandler: ProximityObserver.Handler? = null
-
     private val cloudCredentials = EstimoteCloudCredentials(
         APP_ID,
         APP_TOKEN
     )
 
-    val zoneEventViewModel by viewModels<ZoneEventViewModel>()
-    val agegroupViewModel by viewModels<AgegroupViewModel>()
+    //val zoneEventViewModel by viewModels<ZoneEventViewModel>()
+    private val agegroupViewModel by viewModels<AgegroupViewModel>()
 
 
 
@@ -53,9 +53,9 @@ class MainActivity : ComponentActivity() {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colors.background
-                ) {
-                    BeaconListView(zoneEventViewModel.zoneInfo)
+                    color = MaterialTheme.colors.background) {
+                    AgegroupScreen(agegroupViewModel)
+                    //BeaconListView(zoneEventViewModel.zoneInfo)
                 }
             }
         }
@@ -69,14 +69,16 @@ class MainActivity : ComponentActivity() {
             onRequirementsMissing = displayToastAboutMissingRequirements,
             onError = displayToastAboutError
         )
+        agegroupViewModel.agegroupRepository.addListener()
     }
 
-    override fun onDestroy() {
+    override fun onDestroy() {  //Skal dette være her?
         super.onDestroy()
         proximityObservationHandler?.stop()
     }
 
     private fun startProximityObservation() {
+        Log.d(Constants.BEACONLOGTAG, "StartObserving")
         proximityObserver = ProximityObserverBuilder(applicationContext, cloudCredentials)
             .onError(displayToastAboutError)
             .withTelemetryReportingDisabled()
@@ -85,11 +87,15 @@ class MainActivity : ComponentActivity() {
             .withBalancedPowerMode()
             .build()
 
-        val proximityZones = ArrayList<ProximityZone>()
+        /*val proximityZones = ArrayList<ProximityZone>()
         proximityZones.add(zoneBuild("Medicin1"))
         proximityZones.add(zoneBuild("Medicin2"))
         proximityZones.add(zoneBuild("Medicin3"))
-        proximityZones.add(zoneBuild("512"))
+        proximityZones.add(zoneBuild("512"))*/
+        val proximityZones = ArrayList<ProximityZone>()
+        proximityZones.add(zoneBuild(ZoneNavn.TAG510))
+        proximityZones.add(zoneBuild(ZoneNavn.TAG511))
+        proximityZones.add(zoneBuild(ZoneNavn.TAG512))
 
         proximityObservationHandler = proximityObserver.startObserving(proximityZones)
     }
@@ -99,29 +105,21 @@ class MainActivity : ComponentActivity() {
             .forTag(tag)
             .inNearRange()
             .onEnter {
-                Log.d(TAG, "Enter: ${it.tag}")
-                zoneEventViewModel.updateZoneContexts(setOf(it))
+                Log.d(Constants.BEACONLOGTAG, "Enter: ${it.tag}")
+                agegroupViewModel.getAgegroup(it.tag)
+
+            //Log.d(TAG, "Enter: ${it}")
+                //zoneEventViewModel.updateZoneContexts(setOf(it))
+                //agegroupViewModel.agegroupRepository.getAgegroup()
                 //hent data fra firebase med agegroup fra beacon tag
-                val docRef = FirebaseFirestore.getInstance().collection(Constants.AGEGROUP)
-                docRef.get()
-                    .addOnSuccessListener { Constants ->
-                        if (Constants != null) {
-                            Log.d(TAG, "Enter: ${it.tag}")
-                        } else {
-                            Log.d(TAG, "Intet document")
-                        }
-                    }
-                    .addOnFailureListener { exception ->
-                        Log.d(TAG, "get failed with", exception)
-                    }
 
                 //agegroupViewModel.agegroupRepository.
             }
             .onExit {
-                Log.d(TAG, "Exit: ${it.tag}")
+                Log.d(Constants.BEACONLOGTAG, "Exit: ${it.tag}")
             }
             .onContextChange {
-                Log.d(TAG, "Change: ${it}")
+                Log.d(Constants.BEACONLOGTAG, "Change: ${it}")
                 //zoneEventViewModel.updateZoneContexts(it)
             }
             .build()
@@ -145,6 +143,36 @@ class MainActivity : ComponentActivity() {
     }
 
 }
+/*private fun testFirebaseGetStaff(ageID: String){
+    val docRef = FirebaseFirestore.getInstance().collection(Constants.AGEGROUP)
+    docRef.whereEqualTo(Constants.ZONETAG, ageID)
+        .get()
+        .addOnSuccessListener { documents ->
+            for (document in documents) {
+                Log.d(Constants.FIREBASETAG, "Number of documents => ${documents.size()}")
+                Log.d(Constants.FIREBASETAG, "${document.id} => ${document.data}")
+            }
+        }
+        .addOnFailureListener { exception ->
+            Log.w(Constants.FIREBASETAG, "Error getting documents: ", exception)
+        }
+}
+
+private fun testFirebaseGet(){
+    val docRef = FirebaseFirestore.getInstance().collection(Constants.AGEGROUP)
+    docRef.get()
+        .addOnSuccessListener { documents ->
+            for (document in documents) {
+                Log.d(Constants.FIREBASETAG, "Number of documents => ${documents.size()}")
+                Log.d(Constants.FIREBASETAG, "${document.id} => ${document.data}")
+            }
+        }
+        .addOnFailureListener { exception ->
+            Log.w(Constants.FIREBASETAG, "Error getting documents: ", exception)
+        }
+}*/
+
+
 
 @Composable
 fun BeaconListView(zoneInfo: List<BeaconInfo>) {
